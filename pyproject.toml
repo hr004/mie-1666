@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "optimus"
+version = "0.1.0"
+description = ""
+authors = ["hafizur rahman"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+langchain = "^0.0.332"
+openai = "^1.2.0"
+gurobipy = "^10.0.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
