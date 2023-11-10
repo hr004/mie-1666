@@ -1,7 +1,7 @@
 from utils import get_templates
-
+import os
 api_keys = [
-    "",
+    os.getenv("OPENAI_API_KEY"),
     "sk-API-KEY-2",
     # ...
 ]

@@ -2,10 +2,11 @@
 Reproduce the experiments
 
 """
-
+import os
 import json
-from gpt4or import *
-from configure import api_keys
+import argparse
+from gpt4or import GPT4OR
+from configure import api_keys, MODE_COT_HUMAN, STATUS_SYNTAX_ERROR, STATUS_PASSED
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, default="gpt-3.5-turbo")

@@ -54,6 +54,55 @@ from utils import (
 )
 
 
+class AgentBehaviorParameters:
+    def __init__(self) -> None:
+        self.params = {
+            "COT": True,
+            "Debug": False,
+            "Test": False,
+            "Human": False
+        }
+
+    def check_params(self):
+        pass
+
+class Conversation:
+    def __init__(self, data) -> None:
+        self.global_conversations = []
+        self.data = data
+
+    def user_says_header(self):
+        self.global_conversations.append("\n-------")
+        self.global_conversations.append("User says: ")
+        self.global_conversations.append("---------\n")
+
+    def chatbot_says_header(self, model):
+        self.global_conversations.append("\n----------")
+        self.global_conversations.append(f"{model} says: ")
+        self.global_conversations.append("------------\n")
+
+    def prompt_format(self, template):
+        chat_prompt_template = ChatPromptTemplate.from_messages(messages=template).format_messages(
+            PROBLEM_TYPE=self._data["problem_type"],
+            PROBLEM_INFO=self._data["problem_info"],
+            INPUT_FORMAT=self._data["input_format"],
+            OBJECTIVE=self._data["objective_info"],
+            OUTPUT_INFO=self._data["output_info"],
+            OUTPUT_FORMAT=self._data["output_format"],
+            INITIAL_TEST_SCRIPT=self._data["initial_test_script"],
+            CODE=self._data["code"],
+            CODE_AVAILABLE=self._data["code_available"],
+            SOLVER=self._solver,
+            SOLVER_INSTRUCTION=get_solver_instruction(self._solver),
+            SOLVER_VAR_DEMO=get_solver_demo(self._solver)["var"],
+            SOLVER_CONSTR_DEMO=get_solver_demo(self._solver)["constr"],
+            SOLVER_SOLVE_DEMO=get_solver_demo(self._solver)["solve"],
+            ERROR_MESSAGE=self._errmsg,
+        )
+        return chat_prompt_template
+
+
+
 class GPT4OR(object):
     def __init__(
         self, model_name: str, solver: str, api_key: str, verbose: bool = False
@@ -858,7 +907,7 @@ parser.add_argument(
     "solve the problem. The rephrased instances can then later be used by setting the aug parameter to the "
     "number of rephrases.",
 )
-parser.add_argument("--verbose", type=bool, default=False, help="Verbose mode")
+parser.add_argument("--verbose", type=bool, default=True, help="Verbose mode")
 
 if __name__ == "__main__":
     args = parser.parse_args()

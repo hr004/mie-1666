@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 langchain = "^0.0.332"
-openai = "^1.2.0"
+openai = "0.27.8"
 gurobipy = "^10.0.3"
 
 
