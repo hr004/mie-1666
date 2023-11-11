@@ -1,20 +1,17 @@
 import json
 
 eps = 1e-03
-import os 
-from pathlib import Path
 
-pwd = Path(os.path.abspath(__file__))
 
 def run():
 
     error_list = []
 
-    with open(f'{pwd.parent}/data.json', 'r') as f:
+    with open('data.json', 'r') as f:
         data = json.load(f)
 
     try:
-        with open(f'{pwd.parent}/output.json', 'r') as f:
+        with open('output.json', 'r') as f:
             output = json.load(f)
     except FileNotFoundError:
         error_list.append("Some constraints are missing and the problem is unbounded! Please double check")
@@ -31,7 +28,7 @@ def run():
     total_cost = 0.0
 
     for i in range(n_month):
-
+        
         stock = stock + output["reg_quant"][i] + output["over_quant"][i] - data["demand"][i]
         total_cost += output["reg_quant"][i] * data["cost_regular"] + output["over_quant"][i] * data["cost_overtime"]
         if stock < 0.0:

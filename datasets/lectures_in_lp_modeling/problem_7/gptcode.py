@@ -1,59 +1,53 @@
 
 import json
-import gurobipy as gp
-from gurobipy import GRB
+from gurobipy import *
 
 # Read data from file
-with open("data.json", "r") as file:
-    data = json.load(file)
+with open('data.json') as f:
+    data = json.load(f)
 
-demand = data["demand"]
-max_regular_amount = data["max_regular_amount"]
-cost_regular = data["cost_regular"]
-cost_overtime = data["cost_overtime"]
-store_cost = data["store_cost"]
-N = len(demand)
+demand = data['demand']
+max_regular_amount = data['max_regular_amount']
+cost_regular = data['cost_regular']
+cost_overtime = data['cost_overtime']
+store_cost = data['store_cost']
 
 # Create model
-model = gp.Model()
+model = Model()
 
 # Create decision variables
-reg_quant = model.addVars(N, name="reg_quant", lb=0)
-over_quant = model.addVars(N, name="over_quant", lb=0)
-store_quant = model.addVars(N, name="store_quant", lb=0)
+N = len(demand)
+reg_quant = model.addVars(N, name="reg_quant")
+over_quant = model.addVars(N, name="over_quant")
 
 # Set objective function
-total_cost = sum(cost_regular * reg_quant[n] + cost_overtime * over_quant[n] + store_cost * store_quant[n] for n in range(N))
+total_cost = quicksum(reg_quant[n] * cost_regular + over_quant[n] * cost_overtime + demand[n] * store_cost for n in range(N))
 model.setObjective(total_cost, GRB.MINIMIZE)
 
 # Add constraints
 for n in range(N):
     # Demand constraint
-    model.addConstr(reg_quant[n] + over_quant[n] == demand[n], name=f"demand_{n+1}")
+    model.addConstr(reg_quant[n] + over_quant[n] >= demand[n])
     
-    # Production limit constraint
-    model.addConstr(reg_quant[n] <= max_regular_amount, name=f"production_limit_{n+1}")
+    # Regular production limit constraint
+    model.addConstr(reg_quant[n] <= max_regular_amount)
     
-    # Storage constraint
-    if n == 0:
-        model.addConstr(store_quant[n] == reg_quant[n] + over_quant[n] - demand[n], name=f"storage_{n+1}")
-    else:
-        model.addConstr(store_quant[n] == reg_quant[n] + over_quant[n] - demand[n] + store_quant[n-1], name=f"storage_{n+1}")
-    
-# Optimize model
+    # Non-negativity constraint
+    model.addConstr(reg_quant[n] >= 0)
+    model.addConstr(over_quant[n] >= 0)
+
+# Solve the model
 model.optimize()
 
-# Check optimization status
-if model.status == GRB.OPTIMAL:
-    # Get optimal solution
-    reg_quant_values = [reg_quant[n].x for n in range(N)]
-    over_quant_values = [over_quant[n].x for n in range(N)]
-    
-    # Save output to file
-    output = {
-        "reg_quant": reg_quant_values,
-        "over_quant": over_quant_values
-    }
-    
-    with open("output.json", "w") as file:
-        json.dump(output, file, indent=4)
+# Extract the solution
+reg_quant_solution = [reg_quant[n].x for n in range(N)]
+over_quant_solution = [over_quant[n].x for n in range(N)]
+
+# Save the results in output.json
+output = {
+    "reg_quant": reg_quant_solution,
+    "over_quant": over_quant_solution
+}
+
+with open('output.json', 'w') as f:
+    json.dump(output, f, indent=4)
