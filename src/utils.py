@@ -212,7 +212,7 @@ model.optimize()
 
 
 def get_templates():
-    template_path = os.path.join(os.path.split(__file__)[0], "templates")
+    template_path = os.path.join(os.getcwd(), "templates")
 
     with open(os.path.join(template_path, "template_formulation.txt")) as f:
         template_formulation = f.read()
