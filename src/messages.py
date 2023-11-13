@@ -1,8 +1,13 @@
-
 from langchain.prompts.chat import HumanMessagePromptTemplate, AIMessage
 from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import SystemMessage
-from src.configure import internal_prompt, template_formulation,template_codegen, template_codefix_execution, template_codefix_data
+from src.configure import (
+    internal_prompt,
+    template_formulation,
+    template_codegen,
+    template_codefix_execution,
+    template_codefix_data,
+)
 from src.utils import get_solver_demo, get_solver_instruction
 
 
@@ -23,7 +28,9 @@ class Messages:
         self.global_conversations.append("------------\n")
 
     def prompt_format(self, template):
-        chat_prompt_template = ChatPromptTemplate.from_messages(messages=template).format_messages(
+        chat_prompt_template = ChatPromptTemplate.from_messages(
+            messages=template
+        ).format_messages(
             PROBLEM_TYPE=self.problem.data["problem_type"],
             PROBLEM_INFO=self.problem.data["problem_info"],
             INPUT_FORMAT=self.problem.data["input_format"],
@@ -45,8 +52,8 @@ class Messages:
     def model_format(self, template):
         # this is used only for logging
         formatted_template = template.format(
-            PROBLEM_TYPE = self.problem.data["problem_type"],
-            PROBLEM_INFO = self.problem.data["problem_info"],
+            PROBLEM_TYPE=self.problem.data["problem_type"],
+            PROBLEM_INFO=self.problem.data["problem_info"],
             INPUT_FORMAT=self.problem.data["input_format"],
             OBJECTIVE=self.problem.data["objective_info"],
             OUTPUT_INFO=self.problem.data["output_info"],
@@ -64,7 +71,9 @@ class Messages:
         return formatted_template
 
     def get_formulation_conversation(self):
-        formumation_request = HumanMessagePromptTemplate.from_template(template_formulation)
+        formumation_request = HumanMessagePromptTemplate.from_template(
+            template_formulation
+        )
 
         conversation = [self.system_message, formumation_request]
         messages = self.prompt_format(conversation)
@@ -78,10 +87,11 @@ class Messages:
 
         return messages
 
-
     def get_code_conversation(self):
         assert self.formulation_response is not None
-        formulation_request = HumanMessagePromptTemplate.from_template(template_formulation)
+        formulation_request = HumanMessagePromptTemplate.from_template(
+            template_formulation
+        )
         formulation_response = AIMessage(content=self.formulation_response)
         condegen_request = HumanMessagePromptTemplate.from_template(template_codegen)
 
@@ -89,7 +99,7 @@ class Messages:
             self.system_message,
             formulation_request,
             formulation_response,
-            condegen_request
+            condegen_request,
         ]
 
         messages = self.prompt_format(conversations)
@@ -124,7 +134,7 @@ class Messages:
             self.system_message,
             formulation_request,
             formulation_response,
-            codefix_request
+            codefix_request,
         ]
 
         messages = self.prompt_format(conversations)
@@ -147,4 +157,3 @@ class Messages:
     @property
     def path_to_conversation(self):
         return f"{self.problem.problem_path}/description.log"
-

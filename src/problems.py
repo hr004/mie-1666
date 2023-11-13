@@ -1,9 +1,11 @@
-
 import os
 from src.utils import get_initial_test_script, read_problem_from_entire_file
 
+
 class ProblemReader:
-    def __init__(self, problem_path, problem_description_file, benchmark_file, log_file) -> None:
+    def __init__(
+        self, problem_path, problem_description_file, benchmark_file, log_file
+    ) -> None:
         self.problem_path: str = problem_path
         # self.std_format: str = None
         # std_format hocche description file
@@ -39,7 +41,7 @@ class ProblemReader:
             os.path.join(self.problem_path, self.problem_description_file)
         )
         return data
-    
+
     @property
     def path_to_gpt_code(self):
         return self.problem_path.joinpath("gptcode.py")

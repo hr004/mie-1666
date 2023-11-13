@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from src.problems import ProblemReader
 from src.configure import AgentBehaviorParameters
@@ -14,7 +13,12 @@ def main():
     benchmark_file = "test-human.py"
     log_file = "description-{cot_mode}.log"
 
-    problem = ProblemReader(path, problem_description_file, benchmark_file, log_file.format(cot_mode=MODE_COT_HUMAN))
+    problem = ProblemReader(
+        path,
+        problem_description_file,
+        benchmark_file,
+        log_file.format(cot_mode=MODE_COT_HUMAN),
+    )
 
     agent_params = AgentBehaviorParameters()
     conversations = Messages(problem=problem)
@@ -22,6 +26,7 @@ def main():
 
     optimus = OptiMus(gpt_or=gpt_or)
     optimus.solve_problem()
+
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,3 @@
-
-
 import os
 import subprocess
 import importlib
@@ -63,13 +61,10 @@ class OptiMus:
             os.chdir(self.gpt_or.conversations.problem.path_to_gpt_code.parent)
             # this will create output.json and test-human will read that file and make sure the output is correct or not
             subprocess.run(
-                [
-                    "python",
-                    self.gpt_or.conversations.problem.path_to_gpt_code
-                ],
-                check= True,
+                ["python", self.gpt_or.conversations.problem.path_to_gpt_code],
+                check=True,
                 text=True,
-                capture_output=True
+                capture_output=True,
             )
 
             execution_ok = True
@@ -81,9 +76,8 @@ class OptiMus:
 
     def load_test_file(self):
         spec = importlib.util.spec_from_file_location(
-            "test",
-            self.gpt_or.conversations.problem.human_test_file
-            )
+            "test", self.gpt_or.conversations.problem.human_test_file
+        )
         test = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(test)
         return test

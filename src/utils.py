@@ -142,8 +142,8 @@ def get_initial_test_script(output_format: str):
     for num_field in range(len(json_fields)):
         script += """    if not "%s" in all_json_keys:\n""" % json_fields[num_field]
         script += (
-                """        error_list.append("The output field '%s' is missing")\n\n"""
-                % json_fields[num_field]
+            """        error_list.append("The output field '%s' is missing")\n\n"""
+            % json_fields[num_field]
         )
 
     script += "\n\n    #---------------------------------------------\n"
@@ -162,13 +162,12 @@ def get_solver_instruction(solver: str) -> str:
     if solver == "cvxpy":
         return "- cvxpy.sum takes a list as input, and not a generator"
     elif solver == "gurobi":
-
         return (
             "- Write your code in PEP 8 Python format\n"
             + "- if problem data is presented in percentage (%), do not forget to preprocess it\n"
             + "- Use 'model = gp.Model()' to define the Gurobi model object"
         )
-      
+
     else:
         return ""
 
@@ -206,9 +205,7 @@ model.setObjective(quicksum(y[i] * (i + 1) for i in range(10)) <= 10.0)
 model.optimize()
 """
 
-    return {"var": demo_var,
-            "constr": demo_constr,
-            "solve": demo_solve}
+    return {"var": demo_var, "constr": demo_constr, "solve": demo_solve}
 
 
 def get_templates():
@@ -263,7 +260,7 @@ def get_templates():
 
 
 def generate_formulation(
-        llm, templates, system_message, problem, problem_path, file_name="formulation.txt"
+    llm, templates, system_message, problem, problem_path, file_name="formulation.txt"
 ):
     formulation_request = HumanMessagePromptTemplate.from_template(
         templates["formulation"]
@@ -286,13 +283,13 @@ def generate_formulation(
 
 
 def generate_code(
-        llm,
-        templates,
-        system_message,
-        problem,
-        problem_path,
-        file_name="code.py",
-        double_check=True,
+    llm,
+    templates,
+    system_message,
+    problem,
+    problem_path,
+    file_name="code.py",
+    double_check=True,
 ):
     formulation_request = HumanMessagePromptTemplate.from_template(
         templates["formulation"]
