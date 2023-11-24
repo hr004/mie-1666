@@ -3,7 +3,7 @@ import os
 from typing import Optional, Dict
 
 api_keys = [
-    os.getenv("OPENAI_API_KEY"),
+    os.getenv("OPENAI_API_KEY_YUFENG"),
     "sk-API-KEY-2",
     # ...
 ]

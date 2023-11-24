@@ -24,7 +24,7 @@ class ProblemReader:
 
         data["initial_test_script"] = initial_test_script
         data["code_available"] = ""
-
+        data["error"] = ""
         return data
 
     @property
@@ -35,6 +35,11 @@ class ProblemReader:
     @property
     def errmsg(self):
         return ""
+
+    @errmsg.setter
+    def errmsg(self, msg):
+        return msg
+
 
     def read_problem_from_entire_file(self):
         data = read_problem_from_entire_file(

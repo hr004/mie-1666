@@ -45,7 +45,7 @@ class Messages:
             SOLVER_VAR_DEMO=get_solver_demo(self.problem.solver)["var"],
             SOLVER_CONSTR_DEMO=get_solver_demo(self.problem.solver)["constr"],
             SOLVER_SOLVE_DEMO=get_solver_demo(self.problem.solver)["solve"],
-            ERROR_MESSAGE=self.problem.errmsg,
+            ERROR_MESSAGE=self.problem.data["error"],
         )
         return chat_prompt_template
 
@@ -142,7 +142,7 @@ class Messages:
         self.user_says_header()
         self.global_conversations.append(self.model_format(template_codefix))
 
-        self.chatbot_says_header()
+        self.chatbot_says_header("gpt-3.5-turbo")
 
         return messages
 

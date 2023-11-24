@@ -10,19 +10,16 @@ class GptOr:
         self.agent_params = agent_params
         self.conversations = conversations
         self.llm: Optional[CachedChatOpenAI] = CachedChatOpenAI(
-            openai_api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo"
+            openai_api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4"
         )
-        self.solver_codes = []
 
     def generate_problem_formulation(self):
         formulation_messages = self.conversations.get_formulation_conversation()
         output = self.llm(messages=formulation_messages)
-
         llm_response = output.content
         self.conversations.global_conversations.append(llm_response)
         self.conversations.formulation_response = llm_response
         return llm_response
-        # print()
 
     def generate_problem_code(self):
         code_generation_messages = self.conversations.get_code_conversation()
@@ -33,8 +30,8 @@ class GptOr:
 
         return llm_response
 
-    def generate_codefix_formulation(self):
-        codefix_conversations = self.conversations.get_code_fix_conversation()
+    def generate_codefix_formulation(self, execution_status):
+        codefix_conversations = self.conversations.get_code_fix_conversation(execution_status)
         output = self.llm(messages=codefix_conversations)
         llm_response = output.content
         self.conversations.global_conversations.append(llm_response)
