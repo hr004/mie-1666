@@ -3,6 +3,15 @@ from src.messages import Messages
 from typing import Optional
 from src.llms import CachedChatOpenAI
 import os
+from src.tot.treeofthoughts import MonteCarloTreeofThoughts
+from tot.openai_llms import OpenAILanguageModel
+
+
+# Define the number of thoughts to generate
+num_thoughts = 1
+max_steps = 3
+max_states = 4
+pruning_threshold = 0.5
 
 
 class GptOr:
@@ -12,6 +21,7 @@ class GptOr:
         self.llm: Optional[CachedChatOpenAI] = CachedChatOpenAI(
             openai_api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4"
         )
+        self.tot = MonteCarloTreeofThoughts(OpenAILanguageModel(api_key=os.getenv("OPENAI_API_KEY")))
 
     def generate_problem_formulation(self):
         formulation_messages = self.conversations.get_formulation_conversation()
