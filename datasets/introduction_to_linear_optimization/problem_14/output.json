@@ -1,5 +1,8 @@
 {
-  "net_income": 654.1999999999998,
-  "production": [542.0, 486.0],
-  "upgrade": true
+    "net_income": 606.299212598425,
+    "production": [
+        62.992125984251956,
+        645.6692913385826
+    ],
+    "upgrade": true
 }
