@@ -1,15 +1,18 @@
-from pathlib import Path
-from src.problems import ProblemReader
-from src.configure import AgentBehaviorParameters
-from src.agent import OptiMus
-from src.messages import Messages
-from src.gpt_or import GptOr
-from src.configure import MODE_COT_HUMAN
 import json
+import os
+from pathlib import Path
+
+from src.agent import OptiMus
+from src.configure import MODE_COT_HUMAN, AgentBehaviorParameters
+from src.gpt_or import GptOr
+from src.messages import Messages
+from src.problems import ProblemReader
 
 # sub_dataset = "introduction_to_linear_optimization"
 # sub_dataset = "lectures_in_lp_modeling"
-sub_dataset = "model_building_in_mathematical_programming"
+# sub_dataset = "model_building_in_mathematical_programming"
+sub_dataset = "linear_and_convex_optimization"
+
 
 def main(abs_path: Path):
     print(abs_path)
@@ -32,23 +35,22 @@ def main(abs_path: Path):
     is_solved, total_attempts = optimus.solve_problem()
     return is_solved, total_attempts
 
+
 def run_all():
-    import os 
     results = {}
     directory = f"{os.getcwd()}/datasets/{sub_dataset}/"
     problems = [p for p in os.listdir(directory) if p.startswith("problem")]
-    # paths = [Path(f"{os.getcwd()}/datasets/introduction_to_linear_optimization/problem_{i}") for i in range(1,12)]
-    # print(paths)
     for i, problem in enumerate(problems):
         path = Path(f"{directory}/{problem}").absolute()
         print(f"Solving problem {path}")
         is_solved, total_attempts = main(path)
-        results[f"lp_modelling_{i}"] = {
+        results[f"problem_{i}"] = {
             "success": is_solved,
-            "attempts": total_attempts
+            "attempts": total_attempts,
         }
     return results
 
+
 if __name__ == "__main__":
     results = run_all()
-    json.dump(results, open(f"./results/{sub_dataset}.json", "w"))
+    json.dump(results, open(f"./results/{sub_dataset}_tot.json", "w"))

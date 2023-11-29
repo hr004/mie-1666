@@ -1,6 +1,9 @@
 import logging
-from swarms.models import OpenAIChat
+
+# from swarms.models.openai_models import OpenAI
 # from langchain.chat_models import ChatOpenAI as OpenAIChat
+from openai.error import RateLimitError
+from swarms.models import OpenAIChat
 
 # Logging
 logging.basicConfig(
@@ -8,7 +11,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+import os
+import time
 from abc import ABC, abstractmethod
+
+import openai
+from openai import ChatCompletion
 
 
 class AbstractLanguageModel(ABC):
@@ -19,6 +27,7 @@ class AbstractLanguageModel(ABC):
     @abstractmethod
     def evaluate_states(self, states):
         pass
+
 
 class OpenAILanguageModel(AbstractLanguageModel):
     """
@@ -57,6 +66,8 @@ class OpenAILanguageModel(AbstractLanguageModel):
         self.strategy = strategy
         self.evaluation_strategy = evaluation_strategy
 
+        self.client = ChatCompletion(cache=True, api_key=os.getenv("OPENAI_API_KEY"))
+        self.api_model = "gpt-4"
         # reference : https://www.promptingguide.ai/techniques/react
         self.ReAct_prompt = ""
         if enable_ReAct_prompting:
@@ -65,7 +76,9 @@ class OpenAILanguageModel(AbstractLanguageModel):
                 " then write down your thoughts in format 'Thoughts:xxxx'."
             )
 
-        self.model = OpenAIChat(openai_api_key=api_key, *args, **kwargs)
+        self.model = OpenAIChat(
+            openai_api_key=api_key, model_name="gpt-4", *args, **kwargs
+        )
 
     def generate_text(self, prompt: str, k: int = 3):
         """Generate text from prompt using OpenAI API"""
@@ -77,9 +90,7 @@ class OpenAILanguageModel(AbstractLanguageModel):
                 # print(f'thoughts: {thoughts}')
             return thoughts
 
-    def generate_thoughts(
-        self, state, k, initial_prompt, rejected_solutions=None
-    ):
+    def generate_thoughts(self, state, k, initial_prompt, rejected_solutions=None):
         """
         Generate thoughts from state using OpenAI API
 
@@ -121,9 +132,14 @@ class OpenAILanguageModel(AbstractLanguageModel):
             prompt = f"""You're an TreeofThoughts, an superintelligent AI model devoted to helping Humans by any means necessary. You're purpose is to generate a series of solutions to comply with the user's instructions, you must generate solutions on the basis of determining the most reliable solution in the shortest amount of time, while taking rejected solutions into account and learning from them. 
             Considering the reasoning provided:\n\n
             ###'{state_text}'\n\n###
-            Devise the best possible solution for the task: {initial_prompt}, Here are evaluated solutions that were rejected: 
-            ###{rejected_solutions}###, 
-            complete the {initial_prompt} without making the same mistakes you did with the evaluated rejected solutions. Be simple. Be direct. Provide intuitive solutions as soon as you think of them."""
+            Devise the best possible solution for the task: {initial_prompt}
+            complete the {initial_prompt} without making the same mistakes you did with the evaluated rejected solutions. Be simple. Be direct. Wrap all the generated code using markdown triple backticks (```) to maintain format.
+            Example:
+            ```python
+               import json
+            ```
+            Only provide the correct python code that you think will fix error.
+            """
             answer = self.generate_text(prompt, 1)
             print(f"Answerrrrrr {answer}")
             # print(thoughts)
@@ -144,13 +160,6 @@ class OpenAILanguageModel(AbstractLanguageModel):
                     state_text = state
                 else:
                     state_text = "\n".join(state)
-                print(
-                    "We receive a state of type",
-                    type(state),
-                    "For state: ",
-                    state,
-                    "\n\n",
-                )
                 prompt = f""" To achieve the following goal: '{initial_prompt}', pessimistically value the context of the past solutions and more importantly the latest generated solution you had AS A FLOAT BETWEEN 0 AND 1\n
                     Past solutions:\n\n
                     {state_text}\n       
@@ -160,9 +169,7 @@ class OpenAILanguageModel(AbstractLanguageModel):
 
                 response = self.openai_api_call_handler(prompt, 10, 1)
                 try:
-                    value_text = self.openai_choice2text_handler(
-                        response.choices[0]
-                    )
+                    value_text = self.openai_choice2text_handler(response.choices[0])
                     # print(f'state: {value_text}')
                     value = float(value_text)
                     print(f"Evaluated Thought Value: {value}")
@@ -182,9 +189,7 @@ class OpenAILanguageModel(AbstractLanguageModel):
             )
             response = self.openai_api_call_handler(prompt, 50, 1)
             print(f"state response: {response}")
-            best_state_text = self.openai_choice2text_handler(
-                response.choices[0]
-            )
+            best_state_text = self.openai_choice2text_handler(response.choices[0])
             print(f"Best state text: {best_state_text}")
             best_state = tuple(best_state_text.split())
             print(f"best_state: {best_state}")
@@ -192,6 +197,44 @@ class OpenAILanguageModel(AbstractLanguageModel):
             return {state: 1 if state == best_state else 0 for state in states}
 
         else:
-            raise ValueError(
-                "Invalid evaluation strategy. Choose 'value' or 'vote'."
-            )
+            raise ValueError("Invalid evaluation strategy. Choose 'value' or 'vote'.")
+
+    def openai_api_call_handler(self, prompt, max_tokens, temperature, k=1, stop=None):
+        while True:
+            try:
+                if self.use_chat_api:
+                    messages = [{"role": "user", "content": prompt}]
+                    response = self.client.create(
+                        model=self.api_model,
+                        messages=messages,
+                        max_tokens=400,
+                        temperature=temperature,
+                    )
+                else:
+                    print("HUUU")
+                    # response = openai.Completion.create(
+                    #     engine="gpt-4",
+                    #     prompt=prompt,
+                    #     n=k,
+                    #     max_tokens=max_tokens,
+                    #     stop=stop,
+                    #     temperature=temperature,
+                    # )
+                with open("openai.logs", "a") as log_file:
+                    log_file.write(
+                        "\n" + "-----------" + "\n" + "Prompt : " + prompt + "\n"
+                    )
+                return response
+            except RateLimitError as e:
+                sleep_duratoin = os.environ.get("OPENAI_RATE_TIMEOUT", 30)
+                print(
+                    f"{str(e)}, sleep for {sleep_duratoin}s, set it by env OPENAI_RATE_TIMEOUT"
+                )
+                time.sleep(sleep_duratoin)
+
+    def openai_choice2text_handler(self, choice):
+        if self.use_chat_api:
+            text = choice["message"]["content"]
+        else:
+            text = choice.text.strip()
+        return text

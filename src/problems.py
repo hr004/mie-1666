@@ -1,4 +1,5 @@
 import os
+
 from src.utils import get_initial_test_script, read_problem_from_entire_file
 
 
@@ -39,7 +40,6 @@ class ProblemReader:
     @errmsg.setter
     def errmsg(self, msg):
         return msg
-
 
     def read_problem_from_entire_file(self):
         data = read_problem_from_entire_file(

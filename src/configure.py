@@ -1,6 +1,7 @@
-from utils import get_templates
 import os
-from typing import Optional, Dict
+from typing import Dict, Optional
+
+from utils import get_templates
 
 api_keys = [
     os.getenv("OPENAI_API_KEY_YUFENG"),

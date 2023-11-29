@@ -4,28 +4,28 @@
 		"attempts": 1
 	},
 	"problem_1": {
-		"success": true,
-		"attempts": 1
+		"success": false,
+		"attempts": 5
 	},
 	"problem_2": {
-		"success": true,
-		"attempts": 1
+		"success": false,
+		"attempts": 5
 	},
 	"problem_3": {
 		"success": true,
 		"attempts": 1
 	},
 	"problem_4": {
-		"success": true,
-		"attempts": 1
+		"success": false,
+		"attempts": 5
 	},
 	"problem_5": {
 		"success": true,
-		"attempts": 1
+		"attempts": 5
 	},
 	"problem_6": {
-		"success": false,
-		"attempts": 5
+		"success": true,
+		"attempts": 1
 	},
 	"problem_7": {
 		"success": true,
@@ -37,7 +37,7 @@
 	},
 	"problem_9": {
 		"success": true,
-		"attempts": 2
+		"attempts": 1
 	},
 	"problem_10": {
 		"success": true,
