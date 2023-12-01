@@ -1,0 +1,3 @@
+I'm sorry, but there seems to be some confusion. The text you've provided isn't a Python code snippet but rather a textual description of an issue. The error message indicates a syntax error due to an unterminated string literal, however, without the actual Python code, I'm unable to provide a specific solution.
+
+Please provide the Python code that you're attempting to run so we can help you troubleshoot and correct any errors.
