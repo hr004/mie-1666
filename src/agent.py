@@ -1,6 +1,7 @@
+import importlib
 import os
 import subprocess
-import importlib
+
 from src.gpt_or import GptOr
 
 
@@ -17,7 +18,7 @@ class OptiMus:
         max_attempt = 5
         current_attempt = 0
         while True:
-        # count when we get the first success and execution_ok or not
+            # count when we get the first success and execution_ok or not
             current_attempt += 1
             solved, execution_ok = self.run_and_fix()
             if solved:
@@ -27,7 +28,6 @@ class OptiMus:
                 print("Could not solve the problem after 5 attempts")
                 break
         return solved, current_attempt
-
 
     def extract_python_code(self, code_generation_response):
         try:
@@ -51,8 +51,6 @@ class OptiMus:
             success, execution_ok, error = self.run()
         return success, execution_ok
 
-
-
     # create two funcs. run and fix
     def run(self):
         # execute gpt code and human test file
@@ -64,6 +62,8 @@ class OptiMus:
             test_result_error = self.execute_test_code(test)
             if len(test_result_error) == 0:
                 success = True
+            else:
+                error = test_result_error
         # update error
         if error:
             print(error)

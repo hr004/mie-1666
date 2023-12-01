@@ -1,0 +1,46 @@
+{
+	"problem_0": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_1": {
+		"success": false,
+		"attempts": 5
+	},
+	"problem_2": {
+		"success": false,
+		"attempts": 5
+	},
+	"problem_3": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_4": {
+		"success": false,
+		"attempts": 5
+	},
+	"problem_5": {
+		"success": true,
+		"attempts": 5
+	},
+	"problem_6": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_7": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_8": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_9": {
+		"success": true,
+		"attempts": 1
+	},
+	"problem_10": {
+		"success": true,
+		"attempts": 1
+	}
+}

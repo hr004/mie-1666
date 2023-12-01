@@ -10,6 +10,7 @@ python = "^3.10"
 langchain = "^0.0.332"
 openai = "0.27.8"
 gurobipy = "^10.0.3"
+pydantic = "1.10"
 
 
 [build-system]

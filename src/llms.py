@@ -1,12 +1,11 @@
-from typing import Optional
+from typing import List, Optional
+
 import langchain
-from langchain.schema import Generation, BaseMessage, ChatResult, ChatGeneration
-from typing import List
-
-from langchain.prompts.chat import AIMessage
-from langchain.chat_models import ChatOpenAI
-
 from langchain.cache import SQLiteCache
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts.chat import AIMessage
+from langchain.schema import (BaseMessage, ChatGeneration, ChatResult,
+                              Generation)
 
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 

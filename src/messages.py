@@ -1,13 +1,10 @@
-from langchain.prompts.chat import HumanMessagePromptTemplate, AIMessage
 from langchain.prompts import ChatPromptTemplate
-from langchain.prompts.chat import SystemMessage
-from src.configure import (
-    internal_prompt,
-    template_formulation,
-    template_codegen,
-    template_codefix_execution,
-    template_codefix_data,
-)
+from langchain.prompts.chat import (AIMessage, HumanMessagePromptTemplate,
+                                    SystemMessage)
+
+from src.configure import (internal_prompt, template_codefix_data,
+                           template_codefix_execution, template_codegen,
+                           template_formulation)
 from src.utils import get_solver_demo, get_solver_instruction
 
 
@@ -16,6 +13,8 @@ class Messages:
         self.global_conversations = []
         self.problem = problem
         self.system_message = SystemMessage(content=internal_prompt)
+
+        self._formulation_response = None
 
     def user_says_header(self):
         self.global_conversations.append("\n-------")
@@ -61,7 +60,7 @@ class Messages:
             INITIAL_TEST_SCRIPT=self.problem.data["initial_test_script"],
             CODE=self.problem.data["code"],
             CODE_AVAILABLE=self.problem.data["code_available"],
-            SOLVER=self.problem.solver,
+            SOLVER="gurobi",
             SOLVER_INSTRUCTION=get_solver_instruction(self.problem.solver),
             SOLVER_VAR_DEMO=get_solver_demo(self.problem.solver)["var"],
             SOLVER_CONSTR_DEMO=get_solver_demo(self.problem.solver)["constr"],
