@@ -65,7 +65,7 @@ def verify_correctness(model_name: str):
 
 def main(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, model_max_length=2048)
     valid_loader = get_loaders(batch_size=1, model_name=model_name, split="valid")
 
     for batch in valid_loader:
@@ -82,6 +82,7 @@ def main(model_name: str):
 
         print("Expected Answer:")
         print(tokenizer.decode(batch["raw_labels"][0], skip_special_tokens=True))
+        break
 
 
 if __name__ == "__main__":
@@ -90,12 +91,12 @@ if __name__ == "__main__":
         "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
-        "Salesforce/codet5p-6b",
+        # "Salesforce/codet5p-6b",
     ]
-    for mn in model_name_lst:
-        print(mn)
-        verify_correctness(mn)
-
     # for mn in model_name_lst:
     #     print(mn)
-    #     main(mn)
+    #     verify_correctness(mn)
+
+    for mn in model_name_lst:
+        print(mn)
+        main(mn)
