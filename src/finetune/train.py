@@ -86,7 +86,7 @@ def main():
         )
         lr_monitor = LearningRateMonitor(logging_interval="step")
         trainer = Trainer(
-            default_root_dir=f"{mn}/",
+            default_root_dir=f"results/{mn}/",
             callbacks=[early_stop_callback, lr_monitor],
             devices="cuda"
         )

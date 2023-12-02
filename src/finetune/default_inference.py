@@ -21,11 +21,13 @@ def verify_correctness(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     input_string = "What is the capital city of South Korea?"
+    print(f"Input: {input_string}")
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
     generation_config = GenerationConfig.from_pretrained("t5-small")
     generation_config.max_new_tokens = 2048
     outputs = model.generate(input_ids=tokens, generation_config=generation_config)
-    print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
+    print(f"Output: {outputs}")
 
 
 def main(model_name: str):
