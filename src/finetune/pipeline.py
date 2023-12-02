@@ -198,4 +198,5 @@ def get_loaders(
         dataset,
         batch_size=batch_size,
         shuffle=split == "train",
+        drop_last=split == "train"
     )

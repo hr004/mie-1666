@@ -2,120 +2,101 @@ import math
 import os
 import time
 from typing import Optional
-
+from transformers import T5ForConditionalGeneration, AdamW, get_linear_schedule_with_warmup
 import torch
 from accelerate import Accelerator
 from torch import nn
 from torch.nn import CrossEntropyLoss
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+from src.finetune.pipeline import LanguageModel, get_dummy_loaders, construct_model, get_loaders
 
-from src.finetune.pipeline import LanguageModel, get_dummy_loaders
-
-DATA_NAME = "dummy"
-MODEL_NAME = "gpt2"
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"DEVICE: {DEVICE}")
-
-
-def train(
-    model: nn.Module,
-    loader: torch.utils.data.DataLoader,
-    lr: float = 1e-5,
-    weight_decay: float = 1e-2,
-    model_id: int = 0,
-    save_name: Optional[str] = None,
-) -> nn.Module:
-    save = save_name is not None
-
-    accelerator = Accelerator()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    loss_fn = CrossEntropyLoss(reduction="mean")
-    model, optimizer, loader = accelerator.prepare(model, optimizer, loader)
-
-    epochs = 3
-    num_iter = 0
-    for epoch in range(1, epochs + 1):
-        for step, batch in enumerate(loader):
-            optimizer.zero_grad()
-            lm_logits = model(
-                batch["input_ids"],
-                batch["attention_mask"],
-            )
-            labels = batch["labels"]
-            shift_logits = lm_logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            loss = loss_fn(
-                shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
-            )
-            accelerator.backward(loss)
-            optimizer.step()
-            num_iter += 1
-
-            if save and num_iter % 194 == 0:
-                torch.save(
-                    model.state_dict(),
-                    f"../files/checkpoints/{save_name}/model_{model_id}/iter_{num_iter}.pt",
-                )
-    return model
+from transformers import T5ForConditionalGeneration, AdamW, get_linear_schedule_with_warmup
+import pytorch_lightning as pl
 
 
-def model_evaluate(model: nn.Module, loader: torch.utils.data.DataLoader) -> float:
-    accelerator = Accelerator()
-    model, loader = accelerator.prepare(model, loader)
-
-    loss_fn = CrossEntropyLoss(reduction="sum")
-    total_loss, total_num = 0.0, 0
-    for step, batch in enumerate(loader):
-        with torch.no_grad():
-            lm_logits = model(
-                batch["input_ids"],
-                batch["attention_mask"],
-            )
-            labels = batch["labels"]
-            shift_logits = lm_logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            reshaped_shift_logits = shift_logits.view(-1, shift_logits.size(-1))
-            loss = (
-                loss_fn(reshaped_shift_logits, shift_labels.view(-1)).detach().float()
-            )
-            total_loss += loss.cpu().float().item()
-        total_num += reshaped_shift_logits.shape[0]
-    return total_loss / total_num
+MODEL_NAME = "t5-small"
+# MODEL_NAME = "t5-base"
+# MODEL_NAME = "Salesforce/codet5p-220m"
+# MODEL_NAME = "Salesforce/codet5p-770m-py"
 
 
-def main(num_train: int = 1) -> None:
-    os.makedirs("../files", exist_ok=True)
-    os.makedirs("../files/checkpoints", exist_ok=True)
+class T5Module(pl.LightningModule):
+    def __init__(self, model_name: str, lr: float = 1e-05, num_epochs: int = 3):
+        super().__init__()
+        self.model = construct_model(model_name)
+        self.t_loader = get_loaders(model_name, batch_size=4, split="train")
+        self.v_loader = get_loaders(model_name, batch_size=1, split="valid")
+        self.lr = lr
+        self.num_epochs = num_epochs
 
-    if DATA_NAME == "dummy":
-        train_loader = get_dummy_loaders(
-            model_name=MODEL_NAME, split="train", batch_size=8
-        )
-        valid_loader = get_dummy_loaders(
-            model_name=MODEL_NAME, split="valid", batch_size=8
-        )
-    else:
-        raise NotImplementedError()
+    def forward(self, input_ids, attention_mask, labels=None):
+        outputs = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        return outputs
 
-    save_name = f"data_{DATA_NAME}"
-    for i in range(num_train):
-        print(f"Training {i}th model.")
-        start_time = time.time()
+    def common_step(self, batch, batch_idx):
+        del batch_idx
+        del batch["raw_labels"]
+        outputs = self(**batch)
+        loss = outputs.loss
+        return loss
 
-        model = LanguageModel(model_name=MODEL_NAME)
-        model.train()
-        model = train(
-            model=model,
-            loader=train_loader,
-            model_id=i,
-            save_name=save_name,
-        )
+    def training_step(self, batch, batch_idx):
+        loss = self.common_step(batch, batch_idx)
+        self.log("training_loss", loss)
+        return loss
 
-        model.eval()
-        valid_loss = model_evaluate(model=model, loader=valid_loader)
-        print(f"Validation Perp: {math.exp(valid_loss)}")
-        del model
-        print(f"Took {time.time() - start_time} seconds.")
+    def validation_step(self, batch, batch_idx):
+        loss = self.common_step(batch, batch_idx)
+        self.log("validation_loss", loss, on_epoch=True)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        loss = self.common_step(batch, batch_idx)
+        return loss
+
+    def configure_optimizers(self):
+        # create optimizer
+        optimizer = AdamW(self.parameters(), lr=self.lr)
+        # create learning rate scheduler
+        num_train_optimization_steps = self.num_epochs * len(self.t_loader)
+        lr_scheduler = {'scheduler': get_linear_schedule_with_warmup(optimizer,
+                                                                     num_warmup_steps=5,
+                                                                     num_training_steps=num_train_optimization_steps),
+                        'name': 'learning_rate',
+                        'interval': 'step',
+                        'frequency': 1}
+
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}
+
+    def train_dataloader(self):
+        return self.t_loader
+
+    def val_dataloader(self):
+        return self.v_loader
+
+    def test_dataloader(self):
+        return self.v_loader
+
+
+def main():
+    model = T5Module(model_name=MODEL_NAME)
+    early_stop_callback = EarlyStopping(
+        monitor='validation_loss',
+        patience=3,
+        strict=False,
+        verbose=False,
+        mode='min'
+    )
+    lr_monitor = LearningRateMonitor(logging_interval='step')
+
+    trainer = Trainer(
+                      # default_root_dir="",
+                      # logger=wandb_logger,
+                      callbacks=[early_stop_callback, lr_monitor])
+    trainer.fit(model)
 
 
 if __name__ == "__main__":
-    main(num_train=1)
+    main()

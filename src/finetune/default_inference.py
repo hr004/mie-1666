@@ -57,5 +57,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # verify_correctness()
-    main()
+    verify_correctness()
+    # main()
