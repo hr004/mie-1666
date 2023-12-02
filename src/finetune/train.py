@@ -1,12 +1,23 @@
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.callbacks import (
+    EarlyStopping,
+    LearningRateMonitor,
+    ModelCheckpoint,
+)
 from pytorch_lightning.loggers import WandbLogger
-from transformers import (AdamW, T5ForConditionalGeneration,
-                          get_linear_schedule_with_warmup)
+from transformers import (
+    AdamW,
+    T5ForConditionalGeneration,
+    get_linear_schedule_with_warmup,
+)
 
-from src.finetune.pipeline import (LanguageModel, construct_model,
-                                   get_dummy_loaders, get_loaders)
+from src.finetune.pipeline import (
+    LanguageModel,
+    construct_model,
+    get_dummy_loaders,
+    get_loaders,
+)
 
 
 class T5Module(pl.LightningModule):
@@ -82,13 +93,17 @@ def main():
         print(mn)
         model = T5Module(model_name=mn)
         early_stop_callback = EarlyStopping(
-            monitor="validation_loss", patience=3, strict=False, verbose=False, mode="min"
+            monitor="validation_loss",
+            patience=3,
+            strict=False,
+            verbose=False,
+            mode="min",
         )
         lr_monitor = LearningRateMonitor(logging_interval="step")
         trainer = Trainer(
             default_root_dir=f"results/{mn}/",
             callbacks=[early_stop_callback, lr_monitor],
-            devices="cuda"
+            devices="cuda",
         )
         trainer.fit(model)
 
