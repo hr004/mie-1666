@@ -41,7 +41,7 @@ class LanguageModel(nn.Module):
 
 
 def construct_model(model_name: str) -> nn.Module:
-    if model_name in ["2b", "6b", "16b"]:
+    if "2b" in model_name or "6b" in model_name or "16b" in model_name:
         model = AutoModelForSeq2SeqLM.from_pretrained(model_name, torch_dtype=torch.float16)
     else:
         model = T5ForConditionalGeneration.from_pretrained(
