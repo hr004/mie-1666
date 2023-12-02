@@ -79,6 +79,7 @@ def main():
     ]
 
     for mn in model_list:
+        print(mn)
         model = T5Module(model_name=mn)
         early_stop_callback = EarlyStopping(
             monitor="validation_loss", patience=3, strict=False, verbose=False, mode="min"
