@@ -24,9 +24,16 @@ def verify_correctness(model_name: str):
     print("#" * 80)
     input_string = "What is the capital city of South Korea?"
     print(f"Input: {input_string}")
-    tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
-    outputs = model.generate(input_ids=tokens, max_length=2048)
-    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
+
+    if "6b" in model_name:
+        encoding = tokenizer(input_string, return_tensors="pt").to(DEVICE)
+        encoding['decoder_input_ids'] = encoding['input_ids'].clone()
+        outputs = model.generate(**encoding, max_length=20)
+    else:
+        tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
+        outputs = model.generate(input_ids=tokens, max_length=20)
+
+    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Output: {outputs}")
 
     print("#" * 80)
@@ -43,9 +50,16 @@ def verify_correctness(model_name: str):
             renderer.render(painter)
         return image"""
     print(f"Input: {code}")
-    tokens = tokenizer(code, return_tensors="pt").input_ids.to(DEVICE)
-    outputs = model.generate(input_ids=tokens, max_length=2048)
-    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
+
+    if "6b" in model_name:
+        encoding = tokenizer(code, return_tensors="pt").to(DEVICE)
+        encoding['decoder_input_ids'] = encoding['input_ids'].clone()
+        outputs = model.generate(**encoding, max_length=20)
+    else:
+        tokens = make_texts_to_tokens(code, tokenizer).to(DEVICE)
+        outputs = model.generate(input_ids=tokens, max_length=20)
+    
+    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Output: {outputs}")
 
 
@@ -78,6 +92,6 @@ if __name__ == "__main__":
         print(mn)
         verify_correctness(mn)
 
-    for mn in model_name_lst:
-        print(mn)
-        main(mn)
+    # for mn in model_name_lst:
+    #     print(mn)
+    #     main(mn)
