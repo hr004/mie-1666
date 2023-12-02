@@ -1,21 +1,12 @@
 import os
 
 import pytorch_lightning as pl
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import (
-    EarlyStopping,
-    LearningRateMonitor,
-)
 import torch
-from transformers import (
-    AdamW,
-    get_linear_schedule_with_warmup,
-)
+from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+from transformers import AdamW, get_linear_schedule_with_warmup
 
-from src.finetune.pipeline import (
-    construct_model,
-    get_loaders,
-)
+from src.finetune.pipeline import construct_model, get_loaders
 
 
 class T5Module(pl.LightningModule):
@@ -86,7 +77,6 @@ def main():
         "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
-        "Salesforce/codet5p-6b",
     ]
 
     for mn in model_list:

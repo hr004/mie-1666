@@ -5,15 +5,10 @@ from typing import Any, Dict, List, Optional
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    GenerationConfig,
-    T5ForConditionalGeneration,
-    default_data_collator,
-    AutoModelForSeq2SeqLM,
-)
+from transformers import (AutoConfig, AutoModelForCausalLM,
+                          AutoModelForSeq2SeqLM, AutoTokenizer,
+                          GenerationConfig, T5ForConditionalGeneration,
+                          default_data_collator)
 
 from datasets import load_dataset
 
