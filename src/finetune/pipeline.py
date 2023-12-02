@@ -1,18 +1,13 @@
 from itertools import chain
 from pathlib import Path
-from typing import List, Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from transformers import (
-    AutoConfig,
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    T5ForConditionalGeneration,
-    default_data_collator,
-    GenerationConfig,
-)
+from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
+                          GenerationConfig, T5ForConditionalGeneration,
+                          default_data_collator)
 
 from datasets import load_dataset
 
@@ -74,10 +69,7 @@ class OptimizationDataset(torch.utils.data.Dataset):
             except FileNotFoundError:
                 continue
 
-            self.all_contents.append(
-                prefix
-                + content
-            )
+            self.all_contents.append(prefix + content)
             self.all_results.append(output_content)
 
         self.problem_size = len(self.all_contents)
@@ -94,18 +86,27 @@ class OptimizationDataset(torch.utils.data.Dataset):
         ctext = self.all_results[index]
 
         data_dict = {}
-        model_inputs = self.tokenizer.batch_encode_plus([text], max_length=self.max_length,
-                                                        padding="max_length", truncation=True)
-        data_dict["input_ids"] = torch.tensor(model_inputs["input_ids"]).to(dtype=torch.long).squeeze(0)
-        data_dict["attention_mask"] = torch.tensor(model_inputs["attention_mask"]).to(dtype=torch.long).squeeze(0)
+        model_inputs = self.tokenizer.batch_encode_plus(
+            [text], max_length=self.max_length, padding="max_length", truncation=True
+        )
+        data_dict["input_ids"] = (
+            torch.tensor(model_inputs["input_ids"]).to(dtype=torch.long).squeeze(0)
+        )
+        data_dict["attention_mask"] = (
+            torch.tensor(model_inputs["attention_mask"]).to(dtype=torch.long).squeeze(0)
+        )
 
-        labels = self.tokenizer([ctext], max_length=self.max_length, padding="max_length", truncation=True).input_ids
+        labels = self.tokenizer(
+            [ctext], max_length=self.max_length, padding="max_length", truncation=True
+        ).input_ids
         labels_with_ignore_index = []
         for labels_example in labels:
             labels_example = [label if label != 0 else -100 for label in labels_example]
             labels_with_ignore_index.append(labels_example)
         data_dict["raw_labels"] = torch.tensor(labels).to(dtype=torch.long).squeeze(0)
-        data_dict["labels"] = torch.tensor(labels_with_ignore_index).to(dtype=torch.long).squeeze(0)
+        data_dict["labels"] = (
+            torch.tensor(labels_with_ignore_index).to(dtype=torch.long).squeeze(0)
+        )
 
         return data_dict
 
@@ -198,5 +199,5 @@ def get_loaders(
         dataset,
         batch_size=batch_size,
         shuffle=split == "train",
-        drop_last=split == "train"
+        drop_last=split == "train",
     )

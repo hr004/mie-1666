@@ -1,10 +1,9 @@
 from typing import Any
 
 import torch
-
 from transformers import AutoTokenizer, GenerationConfig
 
-from src.finetune.pipeline import get_loaders, construct_model
+from src.finetune.pipeline import construct_model, get_loaders
 
 # MODEL_NAME = "t5-small"
 # MODEL_NAME = "t5-base"
