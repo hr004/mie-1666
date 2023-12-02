@@ -17,7 +17,8 @@ print(DEVICE)
 
 
 def main():
-    model = construct_model(model_name=FINETUNE_MODEL_NAME).to(DEVICE)
+    model = construct_model(model_name=MODEL_NAME).to(DEVICE)
+    model.load_state_dict(torch.load(FINETUNE_MODEL_NAME))
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     valid_loader = get_loaders(batch_size=1, model_name=MODEL_NAME, split="valid")
     generation_config = GenerationConfig.from_pretrained("t5-small")
