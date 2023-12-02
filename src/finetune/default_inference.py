@@ -21,6 +21,7 @@ def verify_correctness(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
+    print("#" * 80)
     input_string = "What is the capital city of South Korea?"
     print(f"Input: {input_string}")
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
@@ -28,6 +29,7 @@ def verify_correctness(model_name: str):
     outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
     print(f"Output: {outputs}")
 
+    print("#" * 80)
     code = """def svg_to_image(string, size=None):
         if isinstance(string, unicode):
             string = string.encode('utf-8')
@@ -51,16 +53,15 @@ def main(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     valid_loader = get_loaders(batch_size=1, model_name=model_name, split="valid")
-    generation_config = GenerationConfig.from_pretrained("t5-small")
-    generation_config.max_new_tokens = 2048
 
     for batch in valid_loader:
+        print("#" * 80)
         print("Problem:")
         print(tokenizer.decode(batch["input_ids"][0]))
         outputs = model.generate(
             input_ids=batch["input_ids"].to(DEVICE),
             attention_mask=batch["attention_mask"].to(DEVICE),
-            generation_config=generation_config,
+            max_length=2048,
         )
         print("Response:")
         print(tokenizer.decode(outputs[0], skip_special_tokens=True))
@@ -74,4 +75,7 @@ if __name__ == "__main__":
     for mn in model_name_lst:
         print(mn)
         verify_correctness(mn)
-    # main()
+
+    for mn in model_name_lst:
+        print(mn)
+        main(mn)
