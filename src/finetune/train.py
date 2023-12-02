@@ -72,7 +72,7 @@ class T5Module(pl.LightningModule):
 
 def main():
     model_list = [
-        "t5-small",
+        # "t5-small",
         "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",

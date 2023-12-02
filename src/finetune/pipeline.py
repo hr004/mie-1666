@@ -188,7 +188,11 @@ def get_loaders(
         "Salesforce/codet5p-770m-py",
     ]
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if "t5" in model_name:
+        tokenizer = AutoTokenizer.from_pretrained("t5-small")
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     dataset = OptimizationDataset(tokenizer=tokenizer, max_length=1024)
     if split in ["train", "eval_train"]:
         dataset = torch.utils.data.Subset(dataset, list(range(40)))
