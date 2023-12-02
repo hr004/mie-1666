@@ -88,7 +88,8 @@ class ConditionalLanguageModel(nn.Module):
         input_masks: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         generation_config = GenerationConfig.from_pretrained("t5-small")
-        generation_config.max_length = 768
+        # generation_config.max_length = 768
+        generation_config.max_new_tokens = 1024
         return self.model.generate(
             input_ids=input_ids,
             attention_mask=input_masks,
@@ -127,14 +128,14 @@ class OptimizationDataset(torch.utils.data.Dataset):
         source = self.tokenizer.batch_encode_plus(
             [text],
             max_length=self.max_length,
-            pad_to_max_length=True,
+            padding=True,
             truncation=True,
             return_tensors="pt",
         )
         target = self.tokenizer.batch_encode_plus(
             [ctext],
             max_length=self.max_length,
-            pad_to_max_length=True,
+            padding=True,
             truncation=True,
             return_tensors="pt",
         )
@@ -244,15 +245,3 @@ def get_loaders(
         batch_size=batch_size,
         shuffle=split == "train",
     )
-
-
-if __name__ == "__main__":
-    model = ConditionalLanguageModel(model_name="t5-small")
-    loader = get_loaders("t5-small", 4)
-    data = next(iter(loader))
-    out = model(input_ids=data["source_ids"],
-                input_masks=data["source_mask"],
-                decoder_ids=data["target_ids"],
-                decoder_masks=data["target_mask"]
-                )
-    print(out)
