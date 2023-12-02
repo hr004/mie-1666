@@ -88,6 +88,7 @@ def main():
         trainer = Trainer(
             default_root_dir=f"{mn}/",
             callbacks=[early_stop_callback, lr_monitor],
+            devices="cuda"
         )
         trainer.fit(model)
 

@@ -41,12 +41,6 @@ class LanguageModel(nn.Module):
 
 
 def construct_model(model_name: str) -> nn.Module:
-    assert model_name in [
-        "t5-small",
-        "t5-base",
-        "Salesforce/codet5p-220m",
-        "Salesforce/codet5p-770m-py",
-    ]
     model = T5ForConditionalGeneration.from_pretrained(
         model_name,
     )
