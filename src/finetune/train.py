@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor
+from pytorch_lightning.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from transformers import (AdamW, T5ForConditionalGeneration,
                           get_linear_schedule_with_warmup)
@@ -81,13 +81,12 @@ def main():
         monitor="validation_loss", patience=3, strict=False, verbose=False, mode="min"
     )
     lr_monitor = LearningRateMonitor(logging_interval="step")
-
     trainer = Trainer(
         default_root_dir=f"{MODEL_NAME}/",
-        # logger=wandb_logger,
         callbacks=[early_stop_callback, lr_monitor],
     )
     trainer.fit(model)
+    trainer.save_checkpoint(f"{MODEL_NAME}.ckpt")
 
 
 if __name__ == "__main__":
