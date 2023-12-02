@@ -20,12 +20,29 @@ def make_texts_to_tokens(text: str, tokenizer: Any) -> torch.Tensor:
 def verify_correctness(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     input_string = "What is the capital city of South Korea?"
     print(f"Input: {input_string}")
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
-    generation_config = GenerationConfig.from_pretrained("t5-small")
-    generation_config.max_new_tokens = 2048
-    outputs = model.generate(input_ids=tokens, generation_config=generation_config)
+    outputs = model.generate(input_ids=tokens, max_length=2048)
+    outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
+    print(f"Output: {outputs}")
+
+    code = """def svg_to_image(string, size=None):
+        if isinstance(string, unicode):
+            string = string.encode('utf-8')
+            renderer = QtSvg.QSvgRenderer(QtCore.QByteArray(string))
+        if not renderer.isValid():
+            raise ValueError('Invalid SVG data.')
+        if size is None:
+            size = renderer.defaultSize()
+            image = QtGui.QImage(size, QtGui.QImage.Format_ARGB32)
+            painter = QtGui.QPainter(image)
+            renderer.render(painter)
+        return image"""
+    print(f"Input: {code}")
+    tokens = tokenizer(code, return_tensors="pt").input_ids.to(DEVICE)
+    outputs = model.generate(input_ids=tokens, max_length=2048)
     outputs = tokenizer.decode(outputs[0], skip_special_tokens=True).replace("  ", "")
     print(f"Output: {outputs}")
 
