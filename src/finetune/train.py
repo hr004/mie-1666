@@ -19,7 +19,7 @@ from src.finetune.pipeline import (
 
 
 class T5Module(pl.LightningModule):
-    def __init__(self, model_name: str, lr: float = 3e-05, num_target_epochs: int = 5):
+    def __init__(self, model_name: str, lr: float = 3e-05, num_target_epochs: int = 20):
         super().__init__()
         self.model = construct_model(model_name)
         self.t_loader = get_loaders(model_name, batch_size=4, split="train")
@@ -56,7 +56,7 @@ class T5Module(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(self.parameters(), lr=self.lr)
-        num_train_optimization_steps = self.num_epochs * len(self.t_loader)
+        num_train_optimization_steps = self.num_target_epochs * len(self.t_loader)
         lr_scheduler = {
             "scheduler": get_linear_schedule_with_warmup(
                 optimizer,
