@@ -1,15 +1,16 @@
-
 from typing import Any
 
 import torch
 
-from transformers import AutoTokenizer, T5Tokenizer
+from transformers import AutoTokenizer
 
 
 from src.finetune.pipeline import ConditionalLanguageModel, get_loaders
 
-MODEL_NAME = "t5-small"
+# MODEL_NAME = "t5-small"
+MODEL_NAME = "t5-base"
 # MODEL_NAME = "Salesforce/codet5p-220m"
+# MODEL_NAME = "Salesforce/codet5p-770m-py"'
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(DEVICE)
@@ -28,9 +29,7 @@ def verify_correctness():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     input_string = "What is the capital city of South Korea?"
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
-    outputs = model.generate(
-        input_ids=tokens
-    )
+    outputs = model.generate(input_ids=tokens)
     print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 
@@ -44,7 +43,7 @@ def main():
         print(tokenizer.decode(batch["source_ids"][0]))
         outputs = model.generate(
             input_ids=batch["source_ids"].to(DEVICE),
-            input_masks=batch["source_mask"].to(DEVICE)
+            input_masks=batch["source_mask"].to(DEVICE),
         )
         print("Response:")
         print(tokenizer.decode(outputs[0], skip_special_tokens=True))

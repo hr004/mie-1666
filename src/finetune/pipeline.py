@@ -5,9 +5,15 @@ from typing import List, Any, Dict, Optional
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
-                          T5ForConditionalGeneration, T5Tokenizer,
-                          default_data_collator, GenerationConfig)
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    T5ForConditionalGeneration,
+    T5Tokenizer,
+    default_data_collator,
+    GenerationConfig,
+)
 
 from datasets import load_dataset
 
@@ -88,7 +94,6 @@ class ConditionalLanguageModel(nn.Module):
         input_masks: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         generation_config = GenerationConfig.from_pretrained("t5-small")
-        # generation_config.max_length = 768
         generation_config.max_new_tokens = 1024
         return self.model.generate(
             input_ids=input_ids,
@@ -98,7 +103,9 @@ class ConditionalLanguageModel(nn.Module):
 
 
 class OptimizationDataset(torch.utils.data.Dataset):
-    def __init__(self, tokenizer: Any, max_length: int=768, data_path: str="../../datasets"):
+    def __init__(
+        self, tokenizer: Any, max_length: int = 768, data_path: str = "../../datasets"
+    ):
         self.all_contents = []
         self.all_results = []
         for file in Path(data_path).rglob("*description.txt"):
@@ -109,7 +116,11 @@ class OptimizationDataset(torch.utils.data.Dataset):
             except FileNotFoundError:
                 continue
 
-            self.all_contents.append("Write a Python Gurobi code to solve this problem. " + content + "Gurobi code: ")
+            self.all_contents.append(
+                "Write a Python Gurobi code to solve this problem. "
+                + content
+                + "Gurobi code: "
+            )
             self.all_results.append(output_content)
 
         self.problem_size = len(self.all_contents)
