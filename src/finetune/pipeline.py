@@ -42,7 +42,7 @@ class LanguageModel(nn.Module):
 
 def construct_model(model_name: str) -> nn.Module:
     model = T5ForConditionalGeneration.from_pretrained(
-        model_name,
+        model_name
     )
     return model
 
