@@ -28,10 +28,10 @@ def verify_correctness(model_name: str):
     if "6b" in model_name:
         encoding = tokenizer(input_string, return_tensors="pt").to(DEVICE)
         encoding["decoder_input_ids"] = encoding["input_ids"].clone()
-        outputs = model.generate(**encoding, max_length=20)
+        outputs = model.generate(**encoding, max_length=128)
     else:
         tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
-        outputs = model.generate(input_ids=tokens, max_length=20)
+        outputs = model.generate(input_ids=tokens, max_length=128)
 
     outputs = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Output: {outputs}")
@@ -54,10 +54,10 @@ def verify_correctness(model_name: str):
     if "6b" in model_name:
         encoding = tokenizer(code, return_tensors="pt").to(DEVICE)
         encoding["decoder_input_ids"] = encoding["input_ids"].clone()
-        outputs = model.generate(**encoding, max_length=20)
+        outputs = model.generate(**encoding, max_length=128)
     else:
         tokens = make_texts_to_tokens(code, tokenizer).to(DEVICE)
-        outputs = model.generate(input_ids=tokens, max_length=20)
+        outputs = model.generate(input_ids=tokens, max_length=128)
 
     outputs = tokenizer.decode(outputs[0], skip_special_tokens=True)
     print(f"Output: {outputs}")
