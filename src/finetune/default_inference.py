@@ -8,9 +8,9 @@ from transformers import AutoTokenizer
 from src.finetune.pipeline import ConditionalLanguageModel, get_loaders
 
 # MODEL_NAME = "t5-small"
-MODEL_NAME = "t5-base"
+# MODEL_NAME = "t5-base"
 # MODEL_NAME = "Salesforce/codet5p-220m"
-# MODEL_NAME = "Salesforce/codet5p-770m-py"'
+MODEL_NAME = "Salesforce/codet5p-770m-py"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(DEVICE)

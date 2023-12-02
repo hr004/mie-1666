@@ -10,7 +10,6 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     T5ForConditionalGeneration,
-    T5Tokenizer,
     default_data_collator,
     GenerationConfig,
 )
@@ -94,7 +93,7 @@ class ConditionalLanguageModel(nn.Module):
         input_masks: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         generation_config = GenerationConfig.from_pretrained("t5-small")
-        generation_config.max_new_tokens = 1024
+        generation_config.max_new_tokens = 2048
         return self.model.generate(
             input_ids=input_ids,
             attention_mask=input_masks,
@@ -104,7 +103,7 @@ class ConditionalLanguageModel(nn.Module):
 
 class OptimizationDataset(torch.utils.data.Dataset):
     def __init__(
-        self, tokenizer: Any, max_length: int = 768, data_path: str = "../../datasets"
+        self, tokenizer: Any, max_length: int = 1024, data_path: str = "../../datasets"
     ):
         self.all_contents = []
         self.all_results = []
@@ -242,10 +241,8 @@ def get_loaders(
         "Salesforce/codet5p-770m-py",
     ]
 
-    # tokenizer = T5Tokenizer.from_pretrained(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    dataset = OptimizationDataset(tokenizer=tokenizer, max_length=768)
+    dataset = OptimizationDataset(tokenizer=tokenizer, max_length=1024)
     if split in ["train", "eval_train"]:
         dataset = torch.utils.data.Subset(dataset, list(range(40)))
     else:
