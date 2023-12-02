@@ -1,33 +1,31 @@
+import os
+
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import (
     EarlyStopping,
     LearningRateMonitor,
-    ModelCheckpoint,
 )
-from pytorch_lightning.loggers import WandbLogger
+import torch
 from transformers import (
     AdamW,
-    T5ForConditionalGeneration,
     get_linear_schedule_with_warmup,
 )
 
 from src.finetune.pipeline import (
-    LanguageModel,
     construct_model,
-    get_dummy_loaders,
     get_loaders,
 )
 
 
 class T5Module(pl.LightningModule):
-    def __init__(self, model_name: str, lr: float = 1e-05, num_epochs: int = 3):
+    def __init__(self, model_name: str, lr: float = 3e-05, num_target_epochs: int = 5):
         super().__init__()
         self.model = construct_model(model_name)
         self.t_loader = get_loaders(model_name, batch_size=4, split="train")
         self.v_loader = get_loaders(model_name, batch_size=1, split="valid")
         self.lr = lr
-        self.num_epochs = num_epochs
+        self.num_target_epochs = num_target_epochs
 
     def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.model(
@@ -62,7 +60,7 @@ class T5Module(pl.LightningModule):
         lr_scheduler = {
             "scheduler": get_linear_schedule_with_warmup(
                 optimizer,
-                num_warmup_steps=5,
+                num_warmup_steps=100,
                 num_training_steps=num_train_optimization_steps,
             ),
             "name": "learning_rate",
@@ -82,15 +80,17 @@ class T5Module(pl.LightningModule):
 
 
 def main():
+    os.makedirs("checkpoints", exist_ok=True)
     model_list = [
-        # "t5-small",
-        # "t5-base",
+        "t5-small",
+        "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
+        "Salesforce/codet5p-6b",
     ]
 
     for mn in model_list:
-        print(mn)
+        print(f"Training model {mn}")
         model = T5Module(model_name=mn)
         early_stop_callback = EarlyStopping(
             monitor="validation_loss",
@@ -106,6 +106,10 @@ def main():
             devices="cuda",
         )
         trainer.fit(model)
+
+        file_name = f"checkpoints/{mn}.pt"
+        torch.save(model.model.state_dict(), file_name)
+        print(f"Saved checkpoint at {file_name}")
 
 
 if __name__ == "__main__":

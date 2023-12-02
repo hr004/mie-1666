@@ -91,7 +91,7 @@ if __name__ == "__main__":
         "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
-        # "Salesforce/codet5p-6b",
+        "Salesforce/codet5p-6b",
     ]
     # for mn in model_name_lst:
     #     print(mn)
