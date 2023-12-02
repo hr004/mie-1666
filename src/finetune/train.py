@@ -8,11 +8,6 @@ from transformers import (AdamW, T5ForConditionalGeneration,
 from src.finetune.pipeline import (LanguageModel, construct_model,
                                    get_dummy_loaders, get_loaders)
 
-MODEL_NAME = "t5-small"
-# MODEL_NAME = "t5-base"
-# MODEL_NAME = "Salesforce/codet5p-220m"
-# MODEL_NAME = "Salesforce/codet5p-770m-py"
-
 
 class T5Module(pl.LightningModule):
     def __init__(self, model_name: str, lr: float = 1e-05, num_epochs: int = 3):
@@ -76,17 +71,24 @@ class T5Module(pl.LightningModule):
 
 
 def main():
-    model = T5Module(model_name=MODEL_NAME)
-    early_stop_callback = EarlyStopping(
-        monitor="validation_loss", patience=3, strict=False, verbose=False, mode="min"
-    )
-    lr_monitor = LearningRateMonitor(logging_interval="step")
-    trainer = Trainer(
-        default_root_dir=f"{MODEL_NAME}/",
-        callbacks=[early_stop_callback, lr_monitor],
-    )
-    trainer.fit(model)
-    trainer.save_checkpoint(f"{MODEL_NAME}.ckpt")
+    model_list = [
+        "t5-small",
+        "t5-base",
+        "Salesforce/codet5p-220m",
+        "Salesforce/codet5p-770m-py",
+    ]
+
+    for mn in model_list:
+        model = T5Module(model_name=mn)
+        early_stop_callback = EarlyStopping(
+            monitor="validation_loss", patience=3, strict=False, verbose=False, mode="min"
+        )
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        trainer = Trainer(
+            default_root_dir=f"{mn}/",
+            callbacks=[early_stop_callback, lr_monitor],
+        )
+        trainer.fit(model)
 
 
 if __name__ == "__main__":
