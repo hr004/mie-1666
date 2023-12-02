@@ -38,22 +38,13 @@ class T5Module(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
-        self.log("training_loss", loss)
+        self.log("training_loss", loss, on_epoch=True, prog_bar=True)
         return loss
-
-    def training_epoch_end(self, outputs) -> None:
-        loss = sum(output['loss'] for output in outputs) / len(outputs)
-        print("Train Loss")
-        print(loss)
 
     def validation_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
-        self.log("validation_loss", loss, on_epoch=True)
+        self.log("validation_loss", loss, on_epoch=True, prog_bar=True)
         return loss
-
-    def validation_epoch_end(self, outputs) -> None:
-        loss = sum(output['loss'] for output in outputs) / len(outputs)
-        print(loss)
 
     def test_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
