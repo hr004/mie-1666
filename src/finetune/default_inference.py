@@ -8,10 +8,11 @@ from transformers import AutoTokenizer, T5Tokenizer
 
 from src.finetune.pipeline import ConditionalLanguageModel, get_loaders
 
-# MODEL_NAME = "t5-small"
-MODEL_NAME = "Salesforce/codet5p-220m"
+MODEL_NAME = "t5-small"
+# MODEL_NAME = "Salesforce/codet5p-220m"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(DEVICE)
 
 
 def make_texts_to_tokens(text: str, tokenizer: Any) -> torch.Tensor:
@@ -24,7 +25,7 @@ def make_texts_to_tokens(text: str, tokenizer: Any) -> torch.Tensor:
 
 def verify_correctness():
     model = ConditionalLanguageModel(model_name=MODEL_NAME).to(DEVICE)
-    tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     input_string = "What is the capital city of South Korea?"
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
     outputs = model.generate(
@@ -53,4 +54,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # verify_correctness()
     main()
