@@ -19,7 +19,7 @@ def make_texts_to_tokens(text: str, tokenizer: Any) -> torch.Tensor:
 
 def verify_correctness(model_name: str):
     model = construct_model(model_name=model_name).to(DEVICE)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, model_max_length=2048)
 
     print("#" * 80)
     input_string = "What is the capital city of South Korea?"
