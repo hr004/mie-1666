@@ -2,15 +2,14 @@ from typing import Any
 
 import torch
 
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, GenerationConfig
 
-
-from src.finetune.pipeline import ConditionalLanguageModel, get_loaders
+from src.finetune.pipeline import get_loaders, construct_model
 
 # MODEL_NAME = "t5-small"
 # MODEL_NAME = "t5-base"
-# MODEL_NAME = "Salesforce/codet5p-220m"
-MODEL_NAME = "Salesforce/codet5p-770m-py"
+MODEL_NAME = "Salesforce/codet5p-220m"
+# MODEL_NAME = "Salesforce/codet5p-770m-py"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(DEVICE)
@@ -18,38 +17,43 @@ print(DEVICE)
 
 def make_texts_to_tokens(text: str, tokenizer: Any) -> torch.Tensor:
     tokens = tokenizer(
-        "Solve this question: " + text + " Solution:",
+        "Solve this question: " + text,
         return_tensors="pt",
     ).input_ids
     return tokens
 
 
 def verify_correctness():
-    model = ConditionalLanguageModel(model_name=MODEL_NAME).to(DEVICE)
+    model = construct_model(model_name=MODEL_NAME).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     input_string = "What is the capital city of South Korea?"
     tokens = make_texts_to_tokens(input_string, tokenizer).to(DEVICE)
-    outputs = model.generate(input_ids=tokens)
+    generation_config = GenerationConfig.from_pretrained("t5-small")
+    generation_config.max_new_tokens = 2048
+    outputs = model.generate(input_ids=tokens, generation_config=generation_config)
     print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
 
 def main():
-    model = ConditionalLanguageModel(model_name=MODEL_NAME).to(DEVICE)
+    model = construct_model(model_name=MODEL_NAME).to(DEVICE)
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     valid_loader = get_loaders(batch_size=1, model_name=MODEL_NAME, split="valid")
+    generation_config = GenerationConfig.from_pretrained("t5-small")
+    generation_config.max_new_tokens = 2048
 
     for batch in valid_loader:
         print("Problem:")
-        print(tokenizer.decode(batch["source_ids"][0]))
+        print(tokenizer.decode(batch["input_ids"][0]))
         outputs = model.generate(
-            input_ids=batch["source_ids"].to(DEVICE),
-            input_masks=batch["source_mask"].to(DEVICE),
+            input_ids=batch["input_ids"].to(DEVICE),
+            attention_mask=batch["attention_mask"].to(DEVICE),
+            generation_config=generation_config,
         )
         print("Response:")
         print(tokenizer.decode(outputs[0], skip_special_tokens=True))
 
         print("Expected Answer:")
-        print(tokenizer.decode(batch["target_ids"][0], skip_special_tokens=True))
+        print(tokenizer.decode(batch["raw_labels"][0], skip_special_tokens=True))
 
 
 if __name__ == "__main__":

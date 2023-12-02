@@ -45,66 +45,25 @@ class LanguageModel(nn.Module):
         ).logits
 
 
-class ConditionalLanguageModel(nn.Module):
-    def __init__(self, model_name: str) -> None:
-        super().__init__()
-        assert model_name in [
-            "t5-small",
-            "t5-base",
-            "Salesforce/codet5p-220m",
-            "Salesforce/codet5p-770m-py",
-        ]
-        self.model_name = model_name
-        self.model = T5ForConditionalGeneration.from_pretrained(
-            self.model_name,
-        )
-
-    def forward(
-        self,
-        input_ids: torch.Tensor,
-        input_masks: torch.Tensor,
-        decoder_ids: torch.Tensor,
-        decoder_masks: torch.Tensor,
-    ) -> torch.Tensor:
-        return self.model(
-            input_ids=input_ids,
-            attention_mask=input_masks,
-            decoder_input_ids=decoder_ids,
-            decoder_attention_mask=decoder_masks,
-        ).logits
-
-    def compute_loss(
-        self,
-        input_ids: torch.Tensor,
-        input_masks: torch.Tensor,
-        decoder_ids: torch.Tensor,
-        decoder_masks: torch.Tensor,
-    ) -> torch.Tensor:
-        return self.model(
-            input_ids=input_ids,
-            attention_mask=input_masks,
-            decoder_input_ids=decoder_ids,
-            decoder_attention_mask=decoder_masks,
-        ).loss
-
-    def generate(
-        self,
-        input_ids: torch.Tensor,
-        input_masks: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-        generation_config = GenerationConfig.from_pretrained("t5-small")
-        generation_config.max_new_tokens = 2048
-        return self.model.generate(
-            input_ids=input_ids,
-            attention_mask=input_masks,
-            generation_config=generation_config,
-        )
+def construct_model(model_name: str) -> nn.Module:
+    assert model_name in [
+        "t5-small",
+        "t5-base",
+        "Salesforce/codet5p-220m",
+        "Salesforce/codet5p-770m-py",
+    ]
+    model = T5ForConditionalGeneration.from_pretrained(
+        model_name,
+    )
+    return model
 
 
 class OptimizationDataset(torch.utils.data.Dataset):
     def __init__(
         self, tokenizer: Any, max_length: int = 1024, data_path: str = "../../datasets"
     ):
+        prefix = "Write Python Gurobi code to solve the problem: "
+
         self.all_contents = []
         self.all_results = []
         for file in Path(data_path).rglob("*description.txt"):
@@ -116,9 +75,8 @@ class OptimizationDataset(torch.utils.data.Dataset):
                 continue
 
             self.all_contents.append(
-                "Write a Python Gurobi code to solve this problem. "
+                prefix
                 + content
-                + "Gurobi code: "
             )
             self.all_results.append(output_content)
 
@@ -135,33 +93,21 @@ class OptimizationDataset(torch.utils.data.Dataset):
         text = self.all_contents[index]
         ctext = self.all_results[index]
 
-        source = self.tokenizer.batch_encode_plus(
-            [text],
-            max_length=self.max_length,
-            padding=True,
-            truncation=True,
-            return_tensors="pt",
-        )
-        target = self.tokenizer.batch_encode_plus(
-            [ctext],
-            max_length=self.max_length,
-            padding=True,
-            truncation=True,
-            return_tensors="pt",
-        )
+        data_dict = {}
+        model_inputs = self.tokenizer.batch_encode_plus([text], max_length=self.max_length,
+                                                        padding="max_length", truncation=True)
+        data_dict["input_ids"] = torch.tensor(model_inputs["input_ids"]).to(dtype=torch.long).squeeze(0)
+        data_dict["attention_mask"] = torch.tensor(model_inputs["attention_mask"]).to(dtype=torch.long).squeeze(0)
 
-        source_ids = source["input_ids"].squeeze()
-        source_mask = source["attention_mask"].squeeze()
-        target_ids = target["input_ids"].squeeze()
-        target_mask = target["attention_mask"].squeeze()
+        labels = self.tokenizer([ctext], max_length=self.max_length, padding="max_length", truncation=True).input_ids
+        labels_with_ignore_index = []
+        for labels_example in labels:
+            labels_example = [label if label != 0 else -100 for label in labels_example]
+            labels_with_ignore_index.append(labels_example)
+        data_dict["raw_labels"] = torch.tensor(labels).to(dtype=torch.long).squeeze(0)
+        data_dict["labels"] = torch.tensor(labels_with_ignore_index).to(dtype=torch.long).squeeze(0)
 
-        return {
-            "source_ids": source_ids.to(dtype=torch.long),
-            "source_mask": source_mask.to(dtype=torch.long),
-            "target_ids": target_ids.to(dtype=torch.long),
-            "target_ids_y": target_ids.to(dtype=torch.long),
-            "target_mask": target_mask.to(dtype=torch.long),
-        }
+        return data_dict
 
 
 def get_dummy_loaders(
