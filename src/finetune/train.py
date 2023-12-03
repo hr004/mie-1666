@@ -72,11 +72,11 @@ class T5Module(pl.LightningModule):
 
 def main():
     os.makedirs("checkpoints", exist_ok=True)
-    os.makedirs("Salesforce", exist_ok=True)
+    os.makedirs("checkpoints/Salesforce", exist_ok=True)
 
     model_list = [
-        "t5-small",
-        "t5-base",
+        # "t5-small",
+        # "t5-base",
         "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
     ]
