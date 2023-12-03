@@ -13,7 +13,11 @@ class T5Module(pl.LightningModule):
     def __init__(self, model_name: str, lr: float = 3e-05, num_target_epochs: int = 20):
         super().__init__()
         self.model = construct_model(model_name)
-        self.t_loader = get_loaders(model_name, batch_size=4, split="train")
+        if "770m" in model_name:
+            batch_size = 1
+        else:
+            batch_size = 4
+        self.t_loader = get_loaders(model_name, batch_size=batch_size, split="train")
         self.v_loader = get_loaders(model_name, batch_size=1, split="valid")
         self.lr = lr
         self.num_target_epochs = num_target_epochs
@@ -96,6 +100,7 @@ def main():
         trainer = Trainer(
             default_root_dir=f"results/{mn}/",
             callbacks=[early_stop_callback, lr_monitor],
+            devices=1
         )
         trainer.fit(model)
 
