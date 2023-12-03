@@ -77,11 +77,12 @@ def main():
     model_list = [
         # "t5-small",
         # "t5-base",
-        "Salesforce/codet5p-220m",
+        # "Salesforce/codet5p-220m",
         "Salesforce/codet5p-770m-py",
     ]
 
     for mn in model_list:
+        torch.cuda.empty_cache()
         print(f"Training model {mn}")
         model = T5Module(model_name=mn)
         early_stop_callback = EarlyStopping(
