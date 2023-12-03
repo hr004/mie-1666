@@ -34,10 +34,10 @@ def main(model_name: str):
 
 if __name__ == "__main__":
     model_name_lst = [
-        "t5-small",
-        "t5-base",
+        # "t5-small",
+        # "t5-base",
         "Salesforce/codet5p-220m",
-        "Salesforce/codet5p-770m-py",
+        # "Salesforce/codet5p-770m-py",
     ]
     for mn in model_name_lst:
         print(mn)
