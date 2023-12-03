@@ -5,23 +5,16 @@ from transformers import AutoTokenizer
 
 from src.finetune.pipeline import construct_model, get_loaders
 
-MODEL_NAME = "t5-small"
-
-# MODEL_NAME = "t5-base"
-# MODEL_NAME = "Salesforce/codet5p-770m-py"
-
-# MODEL_NAME = "Salesforce/codet5p-220m"
-# FINETUNE_MODEL_NAME = "Salesforce/codet5p-770m-py/lightning_logs/version_0/checkpoints/'epoch=9-step=20.ckpt'"
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(DEVICE)
 
 
 def main(model_name: str):
-    model = construct_model(model_name=MODEL_NAME).to(DEVICE)
-    model.load_state_dict(torch.load(f"checkpoints/{MODEL_NAME}.pt"))
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, model_max_length=2048)
-    valid_loader = get_loaders(batch_size=1, model_name=MODEL_NAME, split="valid")
+    model = construct_model(model_name=model_name).to(DEVICE)
+    model.load_state_dict(torch.load(f"checkpoints/{model_name}.pt"))
+    tokenizer = AutoTokenizer.from_pretrained(model_name, model_max_length=2048)
+    valid_loader = get_loaders(batch_size=1, model_name=model_name, split="valid")
 
     for batch in valid_loader:
         print("#" * 80)
